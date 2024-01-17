@@ -14,6 +14,8 @@ export default {
 
     const ai = new Ai(env.AI);
     /*
+    asr
+      @cf/openai/whisper
     text-generation
       @cf/meta/llama-2-7b-chat-fp16
       @cf/meta/llama-2-7b-chat-int8
@@ -24,6 +26,13 @@ export default {
     text-to-image
       @cf/stabilityai/stable-diffusion-xl-base-1.0
     image-classification
+      @cf/microsoft/resnet-50
+    text-classification
+      @cf/huggingface/distilbert-sst-2-int8
+    text-embedding
+      @cf/baai/bge-small-en-v1.5
+      @cf/baai/bge-base-en-v1.5
+      @cf/baai/bge-large-en-v1.5
     */
 
     if (url.pathname === '/text-generation/') {
