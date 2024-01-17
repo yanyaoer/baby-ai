@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    h1 { text-align: center; }
+    form { width: 80%; margin: 0 auto; }
+    textarea { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+    input[type="submit"] { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+    #response { width: 80%; margin: 0 auto; }
+    #response div { margin: 10px 0; padding:10px 0; border-top: 1px solid #ccc;}
+  </style>
+</head>
+<body>
+  <h1>baby-ai</h1>
+  <form action="" method="POST" id="question-form">
+    <label>choose action:</label>
+    <select id="action">
+      <option value="chat">chat</option>
+      <option value="translate">translate</option>
+      <option value="image">image</option>
+    </select>
+    <textarea id="question" name="question" rows="4" placeholder="Ask a question"></textarea>
+    <input type="submit" value="Submit" id="submit-button">
+  </form>
+  <div id="response"></div>
+  <script>
+    const request_path = () => {
+      const action = document.querySelector('select').value;
+      if (action === 'chat') {
+        return 'text-generation'
+      } else if (action === 'translate') {
+        return 'text-translation'
+      } else if (action === 'image') {
+        return ''
+      }
+      return 'text-generation'
+    }
+    document.querySelector('#question-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const submitButton = document.getElementById('submit-button');
+      const quiz = document.getElementById('question');
+
+      submitButton.style.backgroundColor = 'lightcyan';
+      submitButton.disabled = true;
+
+      const r_path = request_path();
+      const response = await fetch('/' + r_path + '/?in=zh&out=en', { method: 'POST', body: quiz.value });
+      if (document.querySelector('select').value === 'image') {
+        const data = await response.blob();
+        const img = document.createElement('img')
+        img.src = URL.createObjectURL(data)
+        document.querySelector('#response').append(img)
+      } else {
+        const data = await response.text();
+        const div = document.createElement('div')
+        div.innerHTML = data;
+        document.querySelector('#response').append(div)
+      }
+
+      submitButton.style.backgroundColor = 'initial';
+      submitButton.disabled = false;
+    });
+  </script>
+</body>
+</html>
