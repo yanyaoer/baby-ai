@@ -10,7 +10,7 @@ export default {
 
     const url = new URL(request.url);
 
-    const prompt = (await request.clone().text()) || url.searchParams.get("prompt");
+    const prompt = (await request.text()) || url.searchParams.get("prompt");
 
     const ai = new Ai(env.AI);
     /*

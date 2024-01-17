@@ -18,7 +18,8 @@
     <label>choose action:</label>
     <select id="action">
       <option value="chat">chat</option>
-      <option value="translate">translate</option>
+      <option value="translate1">translate en->zh</option>
+      <option value="translate2">translate zh->en</option>
       <option value="image">image</option>
     </select>
     <textarea id="question" name="question" rows="4" placeholder="Ask a question"></textarea>
@@ -26,12 +27,14 @@
   </form>
   <div id="response"></div>
   <script>
-    const request_path = () => {
+    const req_url = () => {
       const action = document.querySelector('select').value;
       if (action === 'chat') {
-        return 'text-generation'
-      } else if (action === 'translate') {
-        return 'text-translation'
+        return '/text-generation/'
+      } else if (action === 'translate1') {
+        return '/text-translation/?in=en&out=zh'
+      } else if (action === 'translate2') {
+        return '/text-translation/?in=zh&out=en'
       } else if (action === 'image') {
         return ''
       }
@@ -46,8 +49,7 @@
       submitButton.style.backgroundColor = 'lightcyan';
       submitButton.disabled = true;
 
-      const r_path = request_path();
-      const response = await fetch('/' + r_path + '/?in=zh&out=en', { method: 'POST', body: quiz.value });
+      const response = await fetch(req_url(), { method: 'POST', body: quiz.value });
       if (document.querySelector('select').value === 'image') {
         const data = await response.blob();
         const img = document.createElement('img')
