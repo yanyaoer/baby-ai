@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="https://s.yankuiyi.com/yankuiyi-com/production/images/favicon-da751c67c5170b3a742c697918d64846.png">
   <style>
     body { font-family: sans-serif; }
     h1 { text-align: center; color: #666; }
@@ -9,6 +10,7 @@
     textarea { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
     input[type="submit"] { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
     #response { width: 80%; margin: 0 auto; }
+    #response img { max-width: 100%; }
     #response div { margin: 10px 0; padding:10px 0; border-top: 1px solid #ccc;}
   </style>
 </head>
@@ -30,7 +32,7 @@
     const req_url = () => {
       const action = document.querySelector('select').value;
       if (action === 'chat') {
-        return '/text-generation/'
+        return '/text-generation/?stream=1'
       } else if (action === 'translate1') {
         return '/text-translation/?in=en&out=zh'
       } else if (action === 'translate2') {
@@ -40,22 +42,62 @@
       }
       return 'text-generation'
     }
+
+    /*
+      const source = new EventSource("/text-generation/?stream=1");
+    source.onmessage = (event) => {
+      if (event.data == "[DONE]") {
+        source.close();
+        return;
+      }
+      const data = JSON.parse(event.data);
+      console.log(data);
+      // el.innerHTML += data.response;
+    }
+    */
+
     document.querySelector('#question-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const submitButton = document.getElementById('submit-button');
       const quiz = document.getElementById('question');
+      const action = document.querySelector('select').value;
 
       submitButton.style.backgroundColor = 'lightcyan';
       submitButton.disabled = true;
 
-      const response = await fetch(req_url(), { method: 'POST', body: quiz.value });
-      if (document.querySelector('select').value === 'image') {
+      if (action === 'image') {
+        const response = await fetch(req_url(), { method: 'POST', body: quiz.value });
         const data = await response.blob();
         const img = document.createElement('img')
         img.src = URL.createObjectURL(data)
         document.querySelector('#response').append(img)
+      } else if (action === 'chat'){
+        const response = await fetch(req_url(), { method: 'POST', headers:{"content-type": "text/event-stream"}, body: quiz.value });
+        const div = document.createElement('div')
+        document.querySelector('#response').append(div)
+        const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+        let history = [];
+        reader.read().then(function pump({ done, value }) {
+          if (done) return;
+          value.split('\n\n')
+            .filter(line => line.trim() && line.trim() !== "[DONE]")
+            .map(line => line.replace(/^data:?\s/, ''))
+            .forEach(line => {
+              try {
+                const js = history.length ? history.pop() + line : line
+                //console.log(js)
+                const data = JSON.parse(js.replace(/^data:?\s/, ''));
+                div.textContent += data.response;
+              } catch(e) {
+                history.push(line);
+                console.log(e, line)
+              }
+            });
+          return reader.read().then(pump);
+        });
       } else {
+        const response = await fetch(req_url(), { method: 'POST', body: quiz.value });
         const data = await response.text();
         const div = document.createElement('div')
         div.innerHTML = data;

@@ -3,7 +3,7 @@ import { Ai } from './vendor/@cloudflare/ai.js';
 
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     if (request.headers.get('Accept').includes('html')) {
       return new Response(html, { headers: { 'Content-Type': 'text/html' } });
     }
@@ -12,7 +12,7 @@ export default {
 
     const prompt = (await request.text()) || url.searchParams.get("prompt");
 
-    const ai = new Ai(env.AI);
+    const ai = new Ai(env.AI, { sessionOptions: { ctx: ctx } });
     /*
     asr
       @cf/openai/whisper
@@ -42,19 +42,17 @@ export default {
         { role: 'user', content: prompt }
       ];
       const model = url.searchParams.get("model") || '@cf/mistral/mistral-7b-instruct-v0.1';
-      const response = await ai.run(model, { messages });
-      // const response = await ai.run('@cf/mistral/mistral-7b-instruct-v0.1', { messages, stream: true });
-
-      return Response.json(response);
-
-      /*
-      return new Response(response, {
-        headers: {
-          "content-type": "text/event-stream",
-        },
-      });
-      */
-
+      console.log(url.searchParams.get('stream'), url.pathname, request.url)
+      if (url.searchParams.get("stream") === '1') {
+        const response = await ai.run(model, { messages, stream: true });
+        console.log(response);
+        return new Response(response, {
+          headers: { "content-type": "text/event-stream" },
+        });
+      } else {
+        const response = await ai.run(model, { messages });
+        return Response.json(response);
+      }
     } else if (url.pathname === '/text-translation/') {
 
       const response = await ai.run('@cf/meta/m2m100-1.2b', {
