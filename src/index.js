@@ -1,5 +1,6 @@
 import html from "./index.html"
 import { Ai } from './vendor/@cloudflare/ai.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 
 export default {
@@ -35,7 +36,16 @@ export default {
       @cf/baai/bge-large-en-v1.5
     */
 
-    if (url.pathname === '/text-generation/') {
+    if (url.pathname === '/gemini/') {
+      const genAI = new GoogleGenerativeAI(env.GOOGLE_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+
+      const result = await model.generateContent(prompt);
+      const res = await result.response;
+      // console.log(res.text());
+      return Response.json(res.text().replace('\n', '<br />'));
+
+    } else if (url.pathname === '/text-generation/') {
       // https://developers.cloudflare.com/workers-ai/models/text-generation/
       const messages = [
         { role: 'system', content: 'You are a friendly assistant' },

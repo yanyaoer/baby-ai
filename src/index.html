@@ -4,11 +4,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="https://s.yankuiyi.com/yankuiyi-com/production/images/favicon-da751c67c5170b3a742c697918d64846.png">
   <style>
-    body { font-family: sans-serif; }
+    body { font-family: sans-serif; background: #333; color:#ccc; }
     h1 { text-align: center; color: #666; }
     form { width: 80%; margin: 0 auto; }
-    textarea { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
-    input[type="submit"] { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+    textarea { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; background:#666; border: 1px solid #999; }
+    input[type="submit"] { width: 100%; padding: 10px; margin: 8px 0;
+      box-sizing: border-box; border: 1px solid #666; color:#666; background: transparent;}
     #response { width: 80%; margin: 0 auto; }
     #response img { max-width: 100%; }
     #response div { margin: 10px 0; padding:10px 0; border-top: 1px solid #ccc;}
@@ -19,7 +20,7 @@
   <form action="" method="POST" id="question-form">
     <label>choose action:</label>
     <select id="action">
-      <option value="chat">chat</option>
+      <option old-value="chat" value="gemini">chat</option>
       <option value="translate1">translate en->zh</option>
       <option value="translate2">translate zh->en</option>
       <option value="image">image</option>
@@ -33,6 +34,8 @@
       const action = document.querySelector('select').value;
       if (action === 'chat') {
         return '/text-generation/?stream=1'
+      } else if (action === 'gemini') {
+        return '/gemini/'
       } else if (action === 'translate1') {
         return '/text-translation/?in=en&out=zh'
       } else if (action === 'translate2') {
