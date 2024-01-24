@@ -1,2 +1,5 @@
 [ai]
 binding = "AI"
+
+[vars]
+GOOGLE_API_KEY = ""

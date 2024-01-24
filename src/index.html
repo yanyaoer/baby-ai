@@ -12,6 +12,7 @@
       box-sizing: border-box; border: 1px solid #666; color:#666; background: transparent;}
     #response { width: 80%; margin: 0 auto; }
     #response img { max-width: 100%; }
+    #response .preview { max-width: 200px; display: inline-block; margin: 5px; }
     #response div { margin: 10px 0; padding:10px 0; border-top: 1px solid #ccc;}
   </style>
 </head>
@@ -20,11 +21,12 @@
   <form action="" method="POST" id="question-form">
     <label>choose action:</label>
     <select id="action">
-      <option old-value="chat" value="gemini">chat</option>
+      <option old-value="chat" value="gemini">chat-gemini</option>
       <option value="translate1">translate en->zh</option>
       <option value="translate2">translate zh->en</option>
       <option value="image">image</option>
     </select>
+    <input type="file" id="imagefile" name="images" accept="image/*" multiple />
     <textarea id="question" name="question" rows="4" placeholder="Ask a question"></textarea>
     <input type="submit" value="Submit" id="submit-button">
   </form>
@@ -99,6 +101,38 @@
             });
           return reader.read().then(pump);
         });
+      } else if (action === 'gemini'){
+        const body = new FormData();
+
+        async function fileToGenerativePart(file) {
+          const base64EncodedDataPromise = new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(file);
+          });
+          return {
+            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+          };
+        }
+
+        const image = document.getElementById('imagefile');
+        const imgList = await Promise.all(Array.from(image.files).map(f=> fileToGenerativePart(f)));
+        if (imgList.length > 0) {
+          body.append("imagefile", JSON.stringify(imgList));
+        }
+        body.append("prompt", quiz.value);
+
+        const response = await fetch(req_url(), { method: 'POST', body });
+        const data = await response.json();
+        const div = document.createElement('div')
+        div.innerHTML = data;
+        document.querySelector('#response').append(div)
+        Array.from(image.files).forEach((f) => {
+          const img = document.createElement('img');
+          img.classList.add('preview');
+          img.src = URL.createObjectURL(f);
+          document.querySelector('#response').append(img);
+        })
       } else {
         const response = await fetch(req_url(), { method: 'POST', body: quiz.value });
         const data = await response.text();

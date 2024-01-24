@@ -11,8 +11,31 @@ export default {
 
     const url = new URL(request.url);
 
-    const prompt = (await request.text()) || url.searchParams.get("prompt");
+    // if (request.headers.get('Content-Type').includes('form')) {
+    if (url.pathname === '/gemini/') {
+      // https://ai.google.dev/tutorials/web_quickstart#generate-text-from-text-and-image-input
+      const formData = await request.formData();
+      const body = {};
+      for (const entry of formData.entries()) {
+        body[entry[0]] = entry[1];
+      }
 
+      const model_name = body.imagefile ? 'gemini-pro-vision' : 'gemini-pro';
+      const args = body.imagefile ? [body.prompt, ...JSON.parse(body.imagefile)] : body.prompt;
+      // console.log(model_name, args, body.imagefile);
+      // return Response.json(JSON.stringify(args));
+
+
+      const genAI = new GoogleGenerativeAI(env.GOOGLE_API_KEY);
+      const model = genAI.getGenerativeModel({ model: model_name });
+      const result = await model.generateContent(args);
+      const res = await result.response;
+      // console.log(res.text());
+      return Response.json(res.text().replace('\n', '<br />'));
+      // return Response.json(body);
+    }
+
+    const prompt = (await request.text()) || url.searchParams.get("prompt");
     const ai = new Ai(env.AI, { sessionOptions: { ctx: ctx } });
     /*
     asr
@@ -36,7 +59,7 @@ export default {
       @cf/baai/bge-large-en-v1.5
     */
 
-    if (url.pathname === '/gemini/') {
+    if (url.pathname === '/gemini-pro/') {
       const genAI = new GoogleGenerativeAI(env.GOOGLE_API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 
