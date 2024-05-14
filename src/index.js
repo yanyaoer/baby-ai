@@ -1,6 +1,7 @@
 import html from "./index.html"
 import { Ai } from './vendor/@cloudflare/ai.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
 
 export default {
@@ -59,7 +60,15 @@ export default {
       @cf/baai/bge-large-en-v1.5
     */
 
-    if (url.pathname === '/gemini-pro/') {
+    if (url.pathname === '/groq/') {
+      const groq = new Groq({ apiKey: env.GROQ_API_KEY });
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [{ role: 'user', content: prompt }],
+        model: 'mixtral-8x7b-32768',
+      });
+
+      return Response.json(chatCompletion.choices[0].message);
+    } else if (url.pathname === '/gemini-pro/') {
       const genAI = new GoogleGenerativeAI(env.GOOGLE_API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 

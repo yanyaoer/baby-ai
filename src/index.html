@@ -21,6 +21,7 @@
   <form action="" method="POST" id="question-form">
     <label>choose action:</label>
     <select id="action">
+      <option value="groq">groq</option>
       <option old-value="chat" value="gemini">chat-gemini</option>
       <option value="translate1">translate en->zh</option>
       <option value="translate2">translate zh->en</option>
@@ -36,6 +37,8 @@
       const action = document.querySelector('select').value;
       if (action === 'chat') {
         return '/text-generation/?stream=1'
+      } else if (action === 'groq') {
+        return '/groq/'
       } else if (action === 'gemini') {
         return '/gemini/'
       } else if (action === 'translate1') {
